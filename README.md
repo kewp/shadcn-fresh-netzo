@@ -420,3 +420,77 @@ TypeError: Cannot read properties of undefined (reading '__H')
 
 https://discord.com/channels/684898665143206084/991511118524715139/1228617857655640194
 
+### 4. jsx-import-source
+
+ok turns out ... there is a note in netzo's `deno.jsonc` (a comment! hence
+the jsonc ... i'm renaming out json to jsonc...) about ... i dunno, something
+like this:
+
+```
+"compilerOptions": {
+    "jsx": "react-jsx",
+    // NOTE: alias "preact" is not being resolved for deno.json(c) of monorepo
+    // therefore we use react here (this is not needed withing the individual
+    // projects e.g. under templates/crm/deno.json, since "preact" resolves properly)
+    // see https://github.com/denoland/deno/issues/20582#issuecomment-1751454928
+    "jsxImportSource": "https://esm.sh/react@18.2.0"
+  },
+```
+
+sounds like .. i dunno. netzo is ... used as an import for other projects,
+i dunno ...
+
+i added it and ... the error went away, but - now nothing happens
+when i go to `localhost:8000`. it's empty - no html, no errors ...
+
+...
+
+ok, this seems to have fixed it:
+
+```
+"jsxImportSource": "https://esm.sh/preact@10.20.0"
+```
+
+no idea why...
+
+now it renders but i don't see anything. i'm not using the dialog properly.
+
+### 5. AlertDialog
+
+here is the code from the chadcn alert-dialog docs https://ui.shadcn.com/docs/components/alert-dialog
+
+```tsx
+<AlertDialog>
+  <AlertDialogTrigger>Open</AlertDialogTrigger>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+      <AlertDialogDescription>
+        This action cannot be undone. This will permanently delete your account
+        and remove your data from our servers.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <AlertDialogAction>Continue</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+```
+
+pasting that in i get:
+
+> `DialogTitle` must be used within `Dialog`
+
+turns out ... it happens in other frameworks: https://github.com/shadcn-ui/ui/issues/2249
+
+...
+
+ok, so ... i moved all the code into `components` ...
+and then made my own special component called `MyAlert.tsx`
+inside of `islands` ... and it seems to work ...
+except without any css, it seems ...
+
+no errors. calling this a win.
+
+no idea why ... it has to go this way.
