@@ -209,3 +209,42 @@ i just ran `deno run -A -r https://fresh.deno.dev` as
 per the fresh docs.
 
 to run you just go `deno task start`
+
+### 2. alert-dialog.tsx
+
+ok, this is going to be pain-stakingly detailed.
+
+first i copied the `alert-dialog.tsx` above into
+`/islands/alert-dialog.tsx` (still not sure which
+code goes into islands and which goes into
+components...).
+
+then i imported it in `index.tsx` with:
+
+```tsx
+import { AlertDialog } from '../islands/alert-dialog.tsx';
+```
+
+and then tried to use it with
+
+```tsx
+<AlertDialog />
+```
+
+and now with `deno task start` i get:
+
+```
+error: Uncaught (in promise) TypeError: Relative import path "react" not prefixed with / or ./ or ../ and not in import map from "file:///Users/karl/shadcn-fresh/islands/alert-dialog.tsx"
+    at file:///Users/karl/shadcn-fresh/islands/alert-dialog.tsx:2:24
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+                    ^
+    at async dev (https://deno.land/x/fresh@1.6.8/src/dev/dev_command.ts:38:21)
+    at async file:///Users/karl/shadcn-fresh/dev.ts:8:1
+```
+
+no idea what it means ... it's coming from line 2 of `alert-dialog.tsx`:
+
+```tsx
+import * as React from "react";
+```
+
