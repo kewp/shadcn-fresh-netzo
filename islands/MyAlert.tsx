@@ -10,11 +10,16 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "netzo/components/alert-dialog.tsx";
+import {
+    Button,
+} from "netzo/components/button.tsx";
 
 export default function MyAlert() {
     return (
         <AlertDialog>
-            <AlertDialogTrigger>Open</AlertDialogTrigger>
+            <AlertDialogTrigger>
+                <Button variant="outline">Show Dialog</Button>
+            </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
