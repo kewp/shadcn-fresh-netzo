@@ -494,3 +494,24 @@ except without any css, it seems ...
 no errors. calling this a win.
 
 no idea why ... it has to go this way.
+
+### 5. rewrite
+
+wrote to the netzo author and he replied https://discord.com/channels/684898665143206084/991511118524715139/1232247765707522058
+
+very simple - don't import all the components yourself, just
+pull in the netzo library ... put the netzo config into `fresh.config.js` ...
+
+it's almost all working ... just the _open_ button isn't styled properly ...
+and i'm getting a `deno-ts` error:
+
+```
+'AlertDialog' cannot be used as a JSX component.
+  Its type 'FC<AlertDialogProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<AlertDialogProps>' is not assignable to type 'FunctionComponent<any>'.
+      Type 'ReactNode' is not assignable to type 'VNode<any> | null'.
+```
+
+but it looks good when i open up the alert!
+
+hmmm... the error just disappeared! no idea why ...

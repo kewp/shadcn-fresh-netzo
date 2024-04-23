@@ -16,6 +16,7 @@
     },
     "exclude": ["**/_fresh/*"],
     "imports": {
+        "netzo/": "https://deno.land/x/netzo@0.5.14/",
         "$fresh/": "https://deno.land/x/fresh@1.6.8/",
         "preact": "https://esm.sh/preact@10.20.0",
         "preact/": "https://esm.sh/preact@10.20.0/",
@@ -35,7 +36,7 @@
         // therefore we use react here (this is not needed withing the individual
         // projects e.g. under templates/crm/deno.json, since "preact" resolves properly)
         // see https://github.com/denoland/deno/issues/20582#issuecomment-1751454928
-        "jsxImportSource": "https://esm.sh/preact@10.20.0"
+        "jsxImportSource": "preact"
     },
     "nodeModulesDir": true
 }

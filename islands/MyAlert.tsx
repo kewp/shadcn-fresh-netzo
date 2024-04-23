@@ -9,7 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "../components/alert-dialog.tsx";
+} from "netzo/components/alert-dialog.tsx";
 
 export default function MyAlert() {
     return (
