@@ -248,3 +248,175 @@ no idea what it means ... it's coming from line 2 of `alert-dialog.tsx`:
 import * as React from "react";
 ```
 
+### 3. react and deno.json
+
+ok so netzo declares an import for react in their `deno.jsonc`
+(no idea if ... you can use jsonc normally ...) and i noticed that
+the fresh install doesn't declare one, just preact ... so let's
+add it:
+
+```
+"react": "https://esm.sh/preact@10.20.0/compat"
+```
+
+> no idea if i also need `react-dom` but let's see
+
+ok now after `deno task start` i get:
+
+```
+error: Uncaught (in promise) TypeError: Module not found "file:///Users/karl/shadcn-fresh/deps/@radix-ui/react-alert-dialog.ts".
+    at file:///Users/karl/shadcn-fresh/islands/alert-dialog.tsx:4:39
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+                    ^
+    at async dev (https://deno.land/x/fresh@1.6.8/src/dev/dev_command.ts:38:21)
+    at async file:///Users/karl/shadcn-fresh/dev.ts:8:1
+```
+
+hmmm ...
+
+ok, weirdly i noticed this before: netzo has a `deps` folder with ... really
+just a bunch of one-line files all with imports. so for example the one in
+the error message (`deps/@radix-ui/react-alert-dialog.ts`) looks like this:
+
+```ts
+export * from "https://esm.sh/@radix-ui/react-alert-dialog@1.0.4?external=react,react-dom&target=es2022";
+```
+
+hmmm ... does that work? ok, let's add it ...
+
+ok, it did work - it downloaded the library ... and now a react-dom error:
+
+```
+error: Uncaught (in promise) TypeError: Relative import path "react-dom" not prefixed with / or ./ or ../ and not in import map from "https://esm.sh/v135/@radix-ui/react-portal@1.0.3/X-ZS9yZWFjdCxyZWFjdC1kb20/es2022/react-portal.mjs"
+    at https://esm.sh/v135/@radix-ui/react-portal@1.0.3/X-ZS9yZWFjdCxyZWFjdC1kb20/es2022/react-portal.mjs:2:167
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+                    ^
+    at async dev (https://deno.land/x/fresh@1.6.8/src/dev/dev_command.ts:38:21)
+    at async file:///Users/karl/shadcn-fresh/dev.ts:8:1
+```
+
+adding it to our `deno.json` as per netzo:
+
+```
+"react-dom": "https://esm.sh/preact@10.20.0/compat",
+```
+
+and now:
+
+```
+error: Uncaught (in promise) TypeError: Module not found "file:///Users/karl/shadcn-fresh/islands/button.tsx".
+    at file:///Users/karl/shadcn-fresh/islands/alert-dialog.tsx:5:32
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+                    ^
+    at async dev (https://deno.land/x/fresh@1.6.8/src/dev/dev_command.ts:38:21)
+    at async file:///Users/karl/shadcn-fresh/dev.ts:8:1
+```
+
+ok right - those files i need to create.
+
+here is `button.tsx`
+
+```tsx
+// @deno-types="npm:@types/react@18.2.60"
+import * as React from "react";
+
+import { IS_BROWSER } from "$fresh/runtime.ts";
+import { Slot } from "../deps/@radix-ui/react-slot.ts";
+import { cva, type VariantProps } from "../deps/class-variance-authority.ts";
+import { cn } from "./utils.ts";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-opacity-90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-opacity-90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-80",
+        ghost: "bg-inherit hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        xl: "h-12 rounded-md px-10 text-xl font-semibold",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+export interface ButtonProps
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+        disabled={IS_BROWSER ? !!props.disabled : true}
+      />
+    );
+  },
+);
+Button.displayName = "Button";
+
+export { Button, buttonVariants };
+```
+
+some more deps to add. and it also uses `utils.ts`:
+
+```ts
+// unocss might have twMerge alternative soon
+// see https://github.com/unocss/unocss/issues/2748
+import { type ClassValue, clsx } from "../deps/clsx.ts";
+import { createTwc } from "../deps/react-twc.ts";
+import { twMerge } from "../deps/tailwind-merge.ts";
+
+export const cn = (...inputs: ClassValue[]) => {
+  return twMerge(clsx(inputs));
+};
+
+export const twx = createTwc({ compose: cn });
+```
+
+ok adding all those deps as well ...
+
+ok, it runs ... but now
+
+```
+An error occurred during route handling or page rendering.
+TypeError: Cannot read properties of undefined (reading '__H')
+    at l (https://esm.sh/stable/preact@10.20.0/denonext/hooks.js:2:205)
+    at T (https://esm.sh/stable/preact@10.20.0/denonext/hooks.js:2:1470)
+    at https://esm.sh/v135/@radix-ui/react-context@1.0.1/X-ZS9yZWFjdCxyZWFjdC1kb20/es2022/react-context.mjs:2:819
+    at Object.T (https://esm.sh/v135/@radix-ui/react-alert-dialog@1.0.4/X-ZS9yZWFjdCxyZWFjdC1kb20/es2022/react-alert-dialog.mjs:2:988)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:3237)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:2543)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:3802)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:2543)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:5050)
+    at m (https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs:2:3802)
+```
+
+... apparently it's ... because of ... a duplicate preact ... thingy?
+
+https://discord.com/channels/684898665143206084/991511118524715139/1228617857655640194
+
